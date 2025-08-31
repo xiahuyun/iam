@@ -6,32 +6,43 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type UpdateOption struct {
+	Username string
+	Phone    string
+	Password string
+}
+
+func NewUpdateOption() *UpdateOption {
+	return &UpdateOption{}
+}
+
+func (o *UpdateOption) Validate() error {
+	if o.Username == "" {
+		return fmt.Errorf("username is required")
+	}
+	return nil
+}
+
 // NewUserUpdateCommand 创建更新用户命令
 func NewUserUpdateCommand() *cobra.Command {
+	o := NewUpdateOption()
 	var updateCmd = &cobra.Command{
 		Use:   "update [用户名]",
-		Short: "更新用户信息",
-		Long:  `更新指定用户名的用户信息。`,
+		Short: "Update user information",
+		Long:  `Update the information of the specified user.`,
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			userName := args[0]
-			// 实现更新用户信息的逻辑
-			fmt.Printf("更新用户 '%s' 信息\n", userName)
-			// 检查哪些标志被设置了
-			if userPhone != "" {
-				fmt.Printf("新手机号: %s\n", userPhone)
-			}
-			if userPassword != "" {
-				fmt.Println("密码已更新")
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := o.Validate(); err != nil {
+				return err
 			}
 
-			// 这里应该调用相应的服务来更新用户信息
+			return nil
 		},
 	}
 
-	// 添加更新用户命令的标志
-	updateCmd.Flags().StringVarP(&userPhone, "phone", "p", "", "用户手机号")
-	updateCmd.Flags().StringVarP(&userPassword, "password", "w", "", "用户密码")
+	// update user command flags
+	updateCmd.Flags().StringVarP(&o.Phone, "phone", "p", "", "User phone number")
+	updateCmd.Flags().StringVarP(&o.Password, "password", "w", "", "User password")
 
 	return updateCmd
 }

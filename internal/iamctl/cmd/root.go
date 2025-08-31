@@ -18,15 +18,7 @@ func NewRootCommand() *cobra.Command {
 		Long: `iamctl is a command line tool for managing IAM system.
 
 It provides user management, secret management and policy management for authentication and authorization.`,
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				cmd.Help()
-			} else {
-				fmt.Println("Unknown command:", args[0])
-				cmd.Help()
-				os.Exit(1)
-			}
-		},
+		Run: runHelp,
 	}
 
 	flags := rootCmd.PersistentFlags()
@@ -36,12 +28,16 @@ It provides user management, secret management and policy management for authent
 	flags.BoolP("verbose", "v", false, "Enable verbose output")
 
 	// add sub commands
-	rootCmd.AddCommand(NewUserCommand())
+	rootCmd.AddCommand(user.NewUserCommand())
 
 	_ = viper.BindPFlags(flags)
 	cobra.OnInitialize(initConfig)
 
 	return rootCmd
+}
+
+func runHelp(cmd *cobra.Command, args []string) {
+	_ = cmd.Help()
 }
 
 // initConfig initialize the iamctl config file
@@ -50,9 +46,14 @@ func initConfig() {
 	if configPath != "" {
 		viper.SetConfigFile(configPath)
 	} else {
-		viper.SetConfigName("config")
 		viper.AddConfigPath("$HOME/.iamctl")
 		viper.AddConfigPath(".")
+
+		// @TODO: remove the default config path as soon as possible
+		// the config path exists only for test purpose
+		viper.AddConfigPath("./configs")
+
+		viper.SetConfigName("iamctl.yaml")
 	}
 
 	viper.SetConfigType("yaml")
@@ -64,22 +65,4 @@ func initConfig() {
 		fmt.Println("Error reading config file:", err)
 		os.Exit(1)
 	}
-}
-
-// NewUserCommand create the user command
-func NewUserCommand() *cobra.Command {
-	var userCmd = &cobra.Command{
-		Use:   "user",
-		Short: "User management",
-		Long:  `Manage IAM system users, including create, query, update and delete users.`,
-	}
-
-	// add user sub commands
-	userCmd.AddCommand(user.NewUserCreateCommand())
-	userCmd.AddCommand(user.NewUserListCommand())
-	userCmd.AddCommand(user.NewUserGetCommand())
-	userCmd.AddCommand(user.NewUserUpdateCommand())
-	userCmd.AddCommand(user.NewUserDeleteCommand())
-
-	return userCmd
 }

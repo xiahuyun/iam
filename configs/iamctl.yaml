@@ -1,0 +1,5 @@
+
+# iam apiserver configuration
+server:
+  address: https://127.0.0.1:8080 # iam api-server 地址
+  timeout: 10s # 请求 api-server 超时时间
